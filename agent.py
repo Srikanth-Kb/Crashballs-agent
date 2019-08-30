@@ -16,8 +16,8 @@ class AIAgent(object):
         self.gamma = 0.9
         self.model = self.network()
         self.memory = list()
-        self.epsilon = 0
-        self.learning_rate = 0.005
+        self.epsilon = 0.3
+        self.learning_rate = 0.0005
         self.high_score = 0
         
 
@@ -69,9 +69,9 @@ class AIAgent(object):
             
 
     def set_reward(self,player,game):
-        self.reward = 1
+        self.reward = 0
         if game.crash:
-            self.reward = -10
+            self.reward = -1
         return self.reward
 
     def network(self,weights=None):
@@ -82,7 +82,9 @@ class AIAgent(object):
         model.add(Dropout(0.15))
         model.add(Dense(output_dim=120, activation='relu'))
         model.add(Dropout(0.15))
-        model.add(Dense(output_dim=5, activation='softmax'))
+        model.add(Dense(output_dim=120, activation='relu'))
+        model.add(Dropout(0.15))
+        model.add(Dense(output_dim=4, activation='softmax'))
         opt = Adam(0.0005)
         model.compile(loss='mse', optimizer=opt)
 

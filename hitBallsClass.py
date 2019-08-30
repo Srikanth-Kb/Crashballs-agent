@@ -22,7 +22,7 @@ class Game:
         self.game_width = game_width
         self.game_height = game_height
         self.game_display = pygame.display.set_mode((self.game_width,self.game_height+60))
-        self.black = (200,200,200)
+        self.black = (200,200,255)
         self.crash = False
         self.game_display.fill(self.black)
         self.score = 0
@@ -30,7 +30,7 @@ class Game:
         self.fps = 100
         self.speed = 6
         self.spawn_count = 10
-        self.sound = pygame.mixer.music.load('noise.mp3')
+        #self.sound = pygame.mixer.music.load('noise.mp3')
         self.difficulty = 'normal'
         self.explosion = pygame.image.load('crash.png')
         pygame.display.update()
@@ -41,8 +41,8 @@ class Player:
 
     def __init__(self,game):
         self.image = pygame.image.load('player_1.png')
-        self.x = game.game_width/2
-        self.y = game.game_height/2
+        self.x = randint(10,game.game_width)
+        self.y = randint(10,game.game_height)
         self.angle = 0
         self.direction = None
         self.motion = False
@@ -170,7 +170,7 @@ def display_score(game,agent):
     myfont = pygame.font.SysFont('Segoe UI',20)
     myfont_bold = pygame.font.SysFont('Segoe UI',20,True)
     text_score = myfont.render('SCORE: ',True,(0,0,0))
-    text_score_number = myfont.render(str(game.score),True,(0,0,0))
+    text_score_number = myfont.render(str(game.score%10),True,(0,0,0))
     text_highest = myfont.render('HIGHEST SCORE: ', True,(0,0,0))
     text_highest_number = myfont_bold.render(str(agent.high_score),True,(0,0,0))
     game.game_display.blit(text_score, (145, 620))
@@ -195,22 +195,20 @@ def action_mapping(action):
     move = [0,0,0]
     x = np.argmax(action)
     if x==0:
-        move=[0,0,1]
+        move=[0,0,0]
     elif x==1:
-        move=[1,0,0]
+        move=[0,0,1]
     elif x==2:
-        move=[0,1,0]
+        move=[0,1,1]
     elif x==3:
         move=[1,0,1]
-    elif x==4:
-        move=[0,1,1]
     return move
 
 
 def set_first_move(game,player,balls,agent):
     state1 = agent.get_state(game,player,balls)
-    action = [0,0,0,0,0]
-    action[randint(0,4)] = 1
+    action = [0,0,0,0]
+    action[randint(0,3)] = 1
     move = action_mapping(action)
     player.do_action(move,game)
     state2 = agent.get_state(game,player,balls)
@@ -252,7 +250,7 @@ while game_number < 150:
         agent.epsilon = 80 - game_number
         current_state = agent.get_state(game,player,balls)
         
-        if randint(0,200) < agent.epsilon:            
+        if randint(0,80) < agent.epsilon:            
             if randint(0,100)<50:
                 #player.angle = randint(0,359)
                 player.direction = random.choice([CLOCKWISE,ANTICLOCKWISE])
