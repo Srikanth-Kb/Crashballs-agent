@@ -223,88 +223,83 @@ def plot_seaborn(array_counter, array_score):
     plt.show()
 
 
-pygame.init()
-pygame.display.init()
-pygame.font.init()
-agent = AIAgent()
-count_game = []
-score_game = []
-game_number = 0
-while game_number < 150:
-    
-    game = Game(800,600)
-    player = Player(game)
-    red_ball = redBall(game)
-    balls = [red_ball]
-    display_score(game,agent)
-    set_first_move(game,player,balls,agent)
-    pygame.display.update()
-    count = 0
-    
-    while game.crash==False:
-        game.score+=1
-        game.game_display.fill(game.black)
-        for ball in balls:
-            ball.moving_balls(game)
+if __name__ == "__main__":
+    pygame.init()
+    pygame.display.init()
+    pygame.font.init()
+    agent = AIAgent()
+    count_game = []
+    score_game = []
+    game_number = 0
+    while game_number < 150:
         
-        agent.epsilon = 80 - game_number
-        current_state = agent.get_state(game,player,balls)
+        game = Game(800,600)
+        player = Player(game)
+        red_ball = redBall(game)
+        balls = [red_ball]
+        display_score(game,agent)
+        set_first_move(game,player,balls,agent)
+        pygame.display.update()
+        count = 0
         
-        if randint(0,80) < agent.epsilon:            
-            if randint(0,100)<50:
-                #player.angle = randint(0,359)
-                player.direction = random.choice([CLOCKWISE,ANTICLOCKWISE])
-            if randint(0,100)<25:
-                player.motion = random.choice([True,False])
-            final_move = [int(player.direction==ANTICLOCKWISE),int(player.direction==CLOCKWISE),int(player.motion)]
+        while game.crash==False:
+            game.score+=1
+            game.game_display.fill(game.black)
+            for ball in balls:
+                ball.moving_balls(game)
+            
+            agent.epsilon = 80 - game_number
+            current_state = agent.get_state(game,player,balls)
+            
+            if randint(0,80) < agent.epsilon:            
+                if randint(0,100)<50:
+                    #player.angle = randint(0,359)
+                    player.direction = random.choice([CLOCKWISE,ANTICLOCKWISE])
+                if randint(0,100)<25:
+                    player.motion = random.choice([True,False])
+                final_move = [int(player.direction==ANTICLOCKWISE),int(player.direction==CLOCKWISE),int(player.motion)]
 
-        else:
+            else:
+                predicted_action = agent.model.predict(current_state.reshape((1,10)))
+                final_move=action_mapping(predicted_action[0])
+            '''
             predicted_action = agent.model.predict(current_state.reshape((1,10)))
             final_move=action_mapping(predicted_action[0])
-        '''
-        predicted_action = agent.model.predict(current_state.reshape((1,10)))
-        final_move=action_mapping(predicted_action[0])
-        '''
-        player.do_action(final_move,game)
-        new_state = agent.get_state(game,player,balls)
-        if check_collision(player,balls):
-            game.crash=True
-        if player_crashed(player,game):
-            game.crash=True
-        reward = agent.set_reward(player,game)
-        agent.short_term_memory(current_state,final_move,reward,new_state,game)
-        agent.remember(current_state,final_move,reward,new_state,game.crash)
-        
-        
-        if count>=game.spawn_count and len(balls)<=15:
-            x = randint(1,3)
-            if x==1:
-                balls.append(redBall(game))
-            elif x==2:
-                balls.append(blueBall(game))
-            elif x==3:
-                balls.append(greenBall(game))
-            count=0
-        count=count+1
-              
-        display_score(game,agent)   
-        pygame.display.update()
-        game.clock.tick(game.fps)
-    game_number = game_number+1
-    print('Game number:',game_number,'\t','Score:',game.score)
-    if game.score>agent.high_score:
-        agent.high_score=game.score
-    score_game.append(game.score)
-    count_game.append(game_number+1)
-
-plot_seaborn(count_game,score_game)
-print('High score by the agent:',agent.high_score)
-agent.model.save_weights('fixed_balls.h5')
-print('Model Saved')
-pygame.display.quit()   
-      
+            '''
+            player.do_action(final_move,game)
+            new_state = agent.get_state(game,player,balls)
+            if check_collision(player,balls):
+                game.crash=True
+            if player_crashed(player,game):
+                game.crash=True
+            reward = agent.set_reward(player,game)
+            agent.short_term_memory(current_state,final_move,reward,new_state,game)
+            agent.remember(current_state,final_move,reward,new_state,game.crash)
+            
+            
+            if count>=game.spawn_count and len(balls)<=15:
+                x = randint(1,3)
+                if x==1:
+                    balls.append(redBall(game))
+                elif x==2:
+                    balls.append(blueBall(game))
+                elif x==3:
+                    balls.append(greenBall(game))
+                count=0
+            count=count+1
                 
-          
-            
-            
+            display_score(game,agent)   
+            pygame.display.update()
+            game.clock.tick(game.fps)
+        game_number = game_number+1
+        print('Game number:',game_number,'\t','Score:',game.score)
+        if game.score>agent.high_score:
+            agent.high_score=game.score
+        score_game.append(game.score)
+        count_game.append(game_number+1)
 
+    plot_seaborn(count_game,score_game)
+    print('High score by the agent:',agent.high_score)
+    agent.model.save_weights('fixed_balls.h5')
+    print('Model Saved')
+    pygame.display.quit()
